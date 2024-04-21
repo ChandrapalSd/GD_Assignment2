@@ -6,29 +6,30 @@
 class Game
 {
 public:
-	Game(uint32_t wWidth, uint32_t wHeight);
+	Game(uint32_t wWidth, uint32_t wHeight, const std::string title = "COMP4300 Assignment 2!");
 	~Game();
 
-	void init();
+	void init(const std::string& filepath);
 	void update();
+	void run();
 
 	// Systems
-	void sMovement();
 	void sUserInput();
+	void sMovement();
+	void sCollision();
 	void sRender();
 	void sEnemySpawner();
-	void sCollision();
 
 	[[nodiscard]] inline bool isRunning() const noexcept
 	{
-		return m_window.isOpen();
+		return m_running;
 	}
 
 private:
 	sf::RenderWindow m_window;
 	sf::Clock m_deltaClock;
-	EntityManager m_entities;
-	Entity m_player;
-	bool m_running = false;
-	// bool m_paused = false;
+	EntityManager m_entityManager;
+	std::shared_ptr<Entity> m_player;
+	bool m_running = true;
+	bool m_paused = false;
 };

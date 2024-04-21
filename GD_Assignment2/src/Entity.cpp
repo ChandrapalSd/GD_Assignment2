@@ -11,22 +11,15 @@ Entity::Entity(std::string tag, size_t id)
 {
 }
 
-Entity::~Entity()
-{
-	// TODO(CP) : Not implemented
-}
-
 void Entity::destroy()
 {
-	// TODO(CP) : Not implemented
-	assert(false);
+	assert(isAlive() && "Entity is already dead!");
+	m_alive = false;
 }
 
-bool Entity::isActive()
+bool Entity::isAlive()
 {
-	// TODO(CP) : Not implemented
-	assert(false);
-	return false;
+	return m_alive;
 }
 
 std::string& Entity::tag()

@@ -3,23 +3,24 @@
 class Vec2
 {
 public:
+	Vec2(double x = 0.0, double y = 0.0);
 	double x{ 0 };
 	double y{ 0 };
 public:
-	[[nodiscard]] inline bool operator== (const Vec2& other) const noexcept;
-	[[nodiscard]] inline bool operator!= (const Vec2& other) const noexcept;
-	[[nodiscard]] inline Vec2 operator+  (const Vec2& other) const noexcept;
-	[[nodiscard]] inline Vec2 operator-  (const Vec2& other) const noexcept;
-	[[nodiscard]] inline Vec2 operator*  (const double scale) const noexcept;
-	[[nodiscard]] inline Vec2 operator/  (const double scale) const noexcept;
+	[[nodiscard]] bool operator== (const Vec2& other) const noexcept;
+	[[nodiscard]] bool operator!= (const Vec2& other) const noexcept;
+	[[nodiscard]] Vec2 operator+  (const Vec2& other) const noexcept;
+	[[nodiscard]] Vec2 operator-  (const Vec2& other) const noexcept;
+	[[nodiscard]] Vec2 operator*  (const double scale) const noexcept;
+	[[nodiscard]] Vec2 operator/  (const double scale) const noexcept;
 
-	[[nodiscard]] inline void operator+= (const Vec2& other) noexcept;
-	[[nodiscard]] inline void operator-= (const Vec2& other) noexcept;
-	[[nodiscard]] inline void operator*= (const double scale) noexcept;
-	[[nodiscard]] inline void operator/= (const double scale) noexcept;
+	void operator+= (const Vec2& other) noexcept;
+	void operator-= (const Vec2& other) noexcept;
+	void operator*= (const double scale) noexcept;
+	void operator/= (const double scale) noexcept;
 
-	inline void normalize() noexcept;
-	[[nodiscard]] inline static Vec2 normalize(const Vec2& vec) noexcept;
-	[[nodiscard]] inline double length() const noexcept;
+	void normalize() noexcept;
+	[[nodiscard]] static Vec2 normalize(const Vec2& vec) noexcept;
+	[[nodiscard]] double length() const noexcept;
 };
 
