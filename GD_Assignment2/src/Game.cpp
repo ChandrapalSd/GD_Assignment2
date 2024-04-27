@@ -9,7 +9,6 @@
 #include <imgui-SFML.h>
 
 
-
 Game::Game(uint32_t wWidth, uint32_t wHeight, const std::string title)
 	: m_window(sf::VideoMode(wWidth, wHeight), title)
 {
@@ -28,32 +27,49 @@ Game::~Game()
 	ImGui::SFML::Shutdown(m_window);
 }
 
-
 void Game::init(const std::string& filepath)
 {
+	m_font.loadFromFile("fonts/KillerTech.ttf");
+
 	m_entityManager.init({ "player" });
 	m_player = m_entityManager.getEntities("player").front();
 	m_player->cTransform = std::make_shared<CTransform>(Vec2(), 5, Vec2());
 	m_player->cInput = std::make_shared<CInput>();
 	m_player->cShape = std::make_shared<CShape>(10, 6);
+	m_player->cShape->shape.setFillColor(sf::Color::Yellow);
 	m_player->cCollision = std::make_shared<CCollision>(10);
+
 	m_player->cScore = std::make_shared<CScore>();
-	m_player->cShape->shape.setFillColor(sf::Color::Red);
+	m_player->cScore->scoreText.setFont(m_font);
+	m_player->cScore->scoreText.setCharacterSize(20);
+	m_player->cScore->scoreText.setFillColor(sf::Color::White);
+	m_player->cScore->scoreText.setPosition(3, 3);
+	m_player->cScore->scoreText.setString("Score : 0");
+
+	m_backTex.loadFromFile("res/bg.png");
+	m_backTex.setRepeated(true);
+	m_background.setTexture(m_backTex);
+	m_background.scale(2, 2);
+	m_background.setColor(sf::Color(255,255,255,100));
 
 	srand((unsigned int)time(0));
+	const auto ws = m_window.getSize();
 	for (int i = 0; i < 10; i++)
 	{
 		const float rMin = 10.0, rMax = 50.0;
+		const uint8_t cMin = 10, cMax = 255;
 		float radius = randInRange(rMin, rMax);
-		int pCount = randInRange<int>(3, 30);
+		int pCount = randInRange<int>(3, 21);
+		Vec2 pos(randInRange(radius, ws.x-radius), randInRange(radius, ws.y-radius));
+		sf::Color clr(randInRange(cMin, cMax), randInRange(cMin, cMax), randInRange(cMin, cMax));
 
 		std::shared_ptr<Entity> e = m_entityManager.addEntity("enemy");
-		e->cTransform = std::make_shared<CTransform>(Vec2(), 5);
+		e->cTransform = std::make_shared<CTransform>(pos, randInRange(4.0f, 7.0f));
 		e->cShape = std::make_shared<CShape>(radius, pCount);
+		e->cShape->shape.setFillColor(clr);
 		e->cCollision = std::make_shared<CCollision>(radius);
 	}
 }
-
 
 void Game::update()
 {
@@ -64,6 +80,7 @@ void Game::update()
 	if (!m_paused) {
 		sMovement();
 		sCollision();
+		sScore();
 		sRender();
 		sEnemySpawner();
 	}
@@ -90,31 +107,32 @@ void Game::sMovement()
 		e->cTransform->pos += (e->cTransform->velocityNormalized * speed ); // TODO(CP) : Multiply with deltatime?
 		sf::Vector2f newPos((float)e->cTransform->pos.x, (float)e->cTransform->pos.y);
 		e->cShape->shape.setPosition(newPos);
+		e->cShape->shape.rotate(speed);
 	}
 
 	for (auto& e : m_entityManager.getEntities("enemy")) {
 
 		const auto& pos = e->cTransform->pos;
-		const float& radius = e->cShape->radius;
+		const float radius = e->cShape->radius;
 
 		// TODO(CP) : Clamp pos to window
-		if (pos.x <= 0 || pos.x + radius * 2 >= windowSize.x) {
+		if (pos.x - radius <= 0 || pos.x + radius >= windowSize.x) {
 			e->cTransform->velocityNormalized.x *= -1;
 		}
-		if (pos.y <= 0 || pos.y + radius * 2 >= windowSize.y) {
+		if (pos.y - radius <= 0 || pos.y + radius >= windowSize.y) {
 			e->cTransform->velocityNormalized.y *= -1;
 		}
 		e->cTransform->velocityNormalized.normalize();
 	}
 
 	Vec2& ppos = m_player->cTransform->pos;
-	float pwidth = m_player->cShape->radius *2;
 
 	// Clamp player to window
-	if (ppos.x < 0) ppos.x = 0;
-	else if (ppos.x + pwidth > windowSize.x) ppos.x = windowSize.x-pwidth;
-	if (ppos.y < 0) ppos.y = 0;
-	else if (ppos.y + pwidth > windowSize.y) ppos.y = windowSize.y-pwidth;
+	const float pradius = m_player->cShape->radius;
+	if (ppos.x - pradius < 0) ppos.x = pradius;
+	else if (ppos.x + pradius > windowSize.x) ppos.x = windowSize.x - pradius;
+	if (ppos.y - pradius< 0) ppos.y = pradius;
+	else if (ppos.y + pradius > windowSize.y) ppos.y = windowSize.y-pradius;
 
 }
 
@@ -225,8 +243,8 @@ static void uiForEntity(const std::shared_ptr<Entity> const& e)
 	const std::string label = "Entity: " + tag + " " + id;
 
 	if (ImGui::CollapsingHeader(label.c_str())) {
-		const std::string labelPos = "Pos #"+id;
-		const std::string labelSpeed = "Speed #"+id;
+		const std::string labelPos = "Pos##"+id;
+		const std::string labelSpeed = "Speed##"+id;
 		const std::string textRadius = "Radius : "+ std::to_string(e->cShape->radius);
 		
 		ImGui::DragFloat2(labelPos.c_str(), &e->cTransform->pos.x);
@@ -237,7 +255,9 @@ static void uiForEntity(const std::shared_ptr<Entity> const& e)
 
 void Game::sRender()
 {
-	m_window.clear(sf::Color::Green);
+	m_window.clear(sf::Color::Black);
+	m_window.draw(m_background);
+	
 	ImGui::SFML::Update(m_window, m_deltaClock.restart());
 
 	// Each entity has shape component
@@ -259,6 +279,7 @@ void Game::sRender()
 #ifdef DEMO
 	ImGui::ShowDemoWindow();
 #endif // DEMO
+	m_window.draw(m_player->cScore->scoreText);
 	ImGui::SFML::Render(m_window);
 	m_window.display();
 }
@@ -270,4 +291,9 @@ void Game::sEnemySpawner()
 
 void Game::sCollision()
 {
+}
+
+void Game::sScore()
+{
+	m_player->cScore->scoreText.setString("Score : " + std::to_string(m_player->cScore->score++/25));
 }

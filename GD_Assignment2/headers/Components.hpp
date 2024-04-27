@@ -25,6 +25,7 @@ public:
 	CShape(float radius, size_t pointCount=30)
 		:radius(radius), pointCount(30), shape(sf::CircleShape(radius, pointCount))
 	{
+		shape.setOrigin(radius, radius);
 		assert(radius != 0 && "Radius must not be zero");
 	}
 };
@@ -51,6 +52,7 @@ struct CInput
 struct CScore
 {
 	int score = 0;
+	sf::Text scoreText;
 };
 
 struct CLifespan

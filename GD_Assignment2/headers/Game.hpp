@@ -17,6 +17,7 @@ public:
 	void sUserInput();
 	void sMovement();
 	void sCollision();
+	void sScore();
 	void sRender();
 	void sEnemySpawner();
 
@@ -32,4 +33,8 @@ private:
 	std::shared_ptr<Entity> m_player;
 	bool m_running = true;
 	bool m_paused = false;
+
+	sf::Font m_font;
+	sf::Texture m_backTex;
+	sf::Sprite m_background;
 };
