@@ -38,6 +38,7 @@ void Game::init(const std::string& filepath)
 	m_player->cShape = std::make_shared<CShape>(10, 6);
 	m_player->cCollision = std::make_shared<CCollision>(10);
 	m_player->cScore = std::make_shared<CScore>();
+	m_player->cShape->shape.setFillColor(sf::Color::Red);
 
 	srand(time(0));
 	for (int i = 0; i < 10; i++)

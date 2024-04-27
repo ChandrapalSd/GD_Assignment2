@@ -62,12 +62,14 @@ void Vec2::operator/=(const double scale) noexcept
 
 void Vec2::normalize() noexcept
 {
-	*this /= length();
+	double len = length();
+	*this = len > 0.01 ? *this/length() : 0;
 }
 
 Vec2 Vec2::normalize(const Vec2& vec) noexcept
 {
-	return vec / vec.length();
+	double len = vec.length();
+	return len > 0.01 ? vec / len : 0;
 }
 
 double Vec2::length() const noexcept
