@@ -30,13 +30,16 @@ Game::~Game()
 void Game::init(const std::string& filepath)
 {
 	m_font.loadFromFile("fonts/KillerTech.ttf");
+	const auto ws = m_window.getSize();
 
 	m_entityManager.init({ "player" });
 	m_player = m_entityManager.getEntities("player").front();
-	m_player->cTransform = std::make_shared<CTransform>(Vec2(), 5, Vec2());
+	m_player->cTransform = std::make_shared<CTransform>(Vec2(ws.x/2, ws.y/2), 5, Vec2());
 	m_player->cInput = std::make_shared<CInput>();
-	m_player->cShape = std::make_shared<CShape>(10, 6);
-	m_player->cShape->shape.setFillColor(sf::Color::Yellow);
+	m_player->cShape = std::make_shared<CShape>(16, 6);
+	m_player->cShape->shape.setFillColor(sf::Color::Transparent);
+	m_player->cShape->shape.setOutlineColor(sf::Color::Red);
+	m_player->cShape->shape.setOutlineThickness(3);
 	m_player->cCollision = std::make_shared<CCollision>(10);
 
 	m_player->cScore = std::make_shared<CScore>();
@@ -53,7 +56,6 @@ void Game::init(const std::string& filepath)
 	m_background.setColor(sf::Color(255,255,255,100));
 
 	srand((unsigned int)time(0));
-	const auto ws = m_window.getSize();
 	for (int i = 0; i < 10; i++)
 	{
 		const float rMin = 10.0, rMax = 50.0;
@@ -67,6 +69,8 @@ void Game::init(const std::string& filepath)
 		e->cTransform = std::make_shared<CTransform>(pos, randInRange(4.0f, 7.0f));
 		e->cShape = std::make_shared<CShape>(radius, pCount);
 		e->cShape->shape.setFillColor(clr);
+		e->cShape->shape.setOutlineColor(sf::Color::White);
+		e->cShape->shape.setOutlineThickness(2);
 		e->cCollision = std::make_shared<CCollision>(radius);
 	}
 }
