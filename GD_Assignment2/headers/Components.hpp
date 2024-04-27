@@ -2,6 +2,7 @@
 #include "Vec2.hpp"
 #include "SFML/Graphics.hpp"
 #include <cassert>
+#include <chrono>
 
 struct CTransform
 {
@@ -60,3 +61,15 @@ struct CLifespan
 	size_t framesLeft;
 };
 
+class CGun
+{
+public:
+	std::chrono::steady_clock::time_point lastSpawned;
+
+	long long coolDownTime = 1e+9; // ns
+
+	CGun(const long long coolDownTime_ms = 300 )
+		: coolDownTime(coolDownTime_ms*1e+6),
+		lastSpawned(std::chrono::high_resolution_clock::now())
+	{}
+};

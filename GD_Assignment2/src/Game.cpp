@@ -34,13 +34,15 @@ void Game::init(const std::string& filepath)
 
 	m_entityManager.init({ "player" });
 	m_player = m_entityManager.getEntities("player").front();
-	m_player->cTransform = std::make_shared<CTransform>(Vec2(ws.x/2, ws.y/2), 5, Vec2());
+	m_player->cTransform = std::make_shared<CTransform>(Vec2((float)ws.x/2, (float)ws.y/2), 5, Vec2());
 	m_player->cInput = std::make_shared<CInput>();
 	m_player->cShape = std::make_shared<CShape>(16, 6);
 	m_player->cShape->shape.setFillColor(sf::Color::Transparent);
 	m_player->cShape->shape.setOutlineColor(sf::Color::Red);
 	m_player->cShape->shape.setOutlineThickness(3);
 	m_player->cCollision = std::make_shared<CCollision>(10);
+
+	m_player->cGun = std::make_shared<CGun>();
 
 	m_player->cScore = std::make_shared<CScore>();
 	m_player->cScore->scoreText.setFont(m_font);
@@ -87,6 +89,7 @@ void Game::update()
 		sScore();
 		sRender();
 		sEnemySpawner();
+		sPlayerWeapon();
 	}
 }
 
@@ -293,8 +296,39 @@ void Game::sEnemySpawner()
 
 }
 
+void Game::sPlayerWeapon()
+{
+	auto currTime = std::chrono::high_resolution_clock::now();
+	if (m_player->cInput->leftMouse && (currTime - m_player->cGun->lastSpawned).count() > m_player->cGun->coolDownTime) {
+		m_player->cGun->lastSpawned = currTime;
+		const auto ppos = m_player->cTransform->pos;
+
+		auto bullet = m_entityManager.addEntity("bullet");
+		// TODO(CP) : bullet towards mouse
+		bullet->cTransform = std::make_shared<CTransform>(ppos, 5);
+		bullet->cShape = std::make_shared<CShape>(3);
+		bullet->cShape->shape.setFillColor(sf::Color::Black);
+		bullet->cShape->shape.setOutlineColor(sf::Color::Red);
+		bullet->cShape->shape.setOutlineThickness(1);
+
+		static uint32_t bulletCount = 0;
+		std::cout << "Bullet Count : " << std::to_string(++bulletCount) << std::endl;
+	}
+}
+
 void Game::sCollision()
 {
+	const Vec2 ppos = m_player->cTransform->pos;
+	const float prad = m_player->cShape->radius;
+	static uint32_t collisionCount = 0;
+	for (auto& e : m_entityManager.getEntities("enemy")) 
+	{
+		if (Vec2::dist(ppos, e->cTransform->pos) < prad + e->cShape->radius)
+		{
+			std::cout << "Collided " << ++collisionCount << " Times" << std::endl;
+			e->cTransform->velocityNormalized *= -1;
+		}
+	}
 }
 
 void Game::sScore()

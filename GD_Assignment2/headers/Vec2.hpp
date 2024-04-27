@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdlib>
 
 class Vec2
 {
@@ -22,5 +23,8 @@ public:
 	void normalize() noexcept;
 	[[nodiscard]] static Vec2 normalize(const Vec2& vec) noexcept;
 	[[nodiscard]] float length() const noexcept;
+	static float dist(const Vec2 a, const Vec2 b) {
+		return std::abs( Vec2(a.x - b.x, a.y - b.y).length() );
+	}
 };
 

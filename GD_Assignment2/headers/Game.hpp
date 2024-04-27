@@ -20,6 +20,7 @@ public:
 	void sScore();
 	void sRender();
 	void sEnemySpawner();
+	void sPlayerWeapon();
 
 	[[nodiscard]] inline bool isRunning() const noexcept
 	{
