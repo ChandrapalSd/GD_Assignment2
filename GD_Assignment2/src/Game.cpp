@@ -86,7 +86,7 @@ void Game::sMovement()
 
 	// Each entity has transform component
 	for (auto& e : m_entityManager.getEntities()) {
-		double speed = e->cTransform->speed;
+		float speed = e->cTransform->speed;
 		e->cTransform->pos += (e->cTransform->velocityNormalized * speed ); // TODO(CP) : Multiply with deltatime?
 		sf::Vector2f newPos((float)e->cTransform->pos.x, (float)e->cTransform->pos.y);
 		e->cShape->shape.setPosition(newPos);
@@ -108,7 +108,7 @@ void Game::sMovement()
 	}
 
 	Vec2& ppos = m_player->cTransform->pos;
-	double pwidth = m_player->cShape->radius *2;
+	float pwidth = m_player->cShape->radius *2;
 
 	// Clamp player to window
 	if (ppos.x < 0) ppos.x = 0;
@@ -218,6 +218,23 @@ void Game::sUserInput()
 	}
 }
 
+static void uiForEntity(const std::shared_ptr<Entity> const& e)
+{
+	const std::string tag(e->tag());
+	const std::string id(std::to_string(e->id()));
+	const std::string label = "Entity: " + tag + " " + id;
+
+	if (ImGui::CollapsingHeader(label.c_str())) {
+		const std::string labelPos = "Pos #"+id;
+		const std::string labelSpeed = "Speed #"+id;
+		const std::string textRadius = "Radius : "+ std::to_string(e->cShape->radius);
+		
+		ImGui::DragFloat2(labelPos.c_str(), &e->cTransform->pos.x);
+		ImGui::DragFloat(labelSpeed.c_str(), &e->cTransform->speed);
+		ImGui::Text(textRadius.c_str());
+	}
+}
+
 void Game::sRender()
 {
 	m_window.clear(sf::Color::Green);
@@ -227,6 +244,17 @@ void Game::sRender()
 	for (auto& e : m_entityManager.getEntities()) {
 		m_window.draw(e->cShape->shape);
 	}
+
+	ImGui::Begin("Debug panel");
+	ImGui::Text("Press P to Pause / Resume");
+	if (ImGui::CollapsingHeader("Entities"))
+	{
+		for (auto& e : m_entityManager.getEntities())
+		{
+			uiForEntity(e);
+		}
+	}
+	ImGui::End();
 
 #ifdef DEMO
 	ImGui::ShowDemoWindow();

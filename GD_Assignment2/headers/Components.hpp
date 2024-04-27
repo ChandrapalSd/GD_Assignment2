@@ -7,9 +7,9 @@ struct CTransform
 {
 	Vec2 pos;
 	Vec2 velocityNormalized;
-	double speed;
+	float speed;
 
-	CTransform(Vec2 pos, double speed, Vec2 velocityNormalized = {1,1})
+	CTransform(Vec2 pos, float speed, Vec2 velocityNormalized = {1,1})
 		:pos(pos), velocityNormalized(velocityNormalized), speed(speed)
 	{}
 };
@@ -31,9 +31,9 @@ public:
 
 struct CCollision
 {
-	double radius;
+	float radius;
 
-	CCollision(double radius)
+	CCollision(float radius)
 		:radius(radius)
 	{}
 };
