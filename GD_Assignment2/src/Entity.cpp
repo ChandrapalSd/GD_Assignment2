@@ -1,11 +1,6 @@
 #include "Entity.hpp"
 #include <cassert>
 
-Entity::Entity()
-{
-	// TODO(CP) : Not implemented
-}
-
 Entity::Entity(std::string tag, size_t id)
 	: m_tag(std::move(tag)), m_id(id)
 {

@@ -40,7 +40,7 @@ void Game::init(const std::string& filepath)
 	m_player->cScore = std::make_shared<CScore>();
 	m_player->cShape->shape.setFillColor(sf::Color::Red);
 
-	srand(time(0));
+	srand((unsigned int)time(0));
 	for (int i = 0; i < 10; i++)
 	{
 		const float rMin = 10.0, rMax = 50.0;
@@ -58,8 +58,6 @@ void Game::init(const std::string& filepath)
 void Game::update()
 {
 	m_entityManager.update();
-	m_window.clear(sf::Color::Green);
-	ImGui::SFML::Update(m_window, m_deltaClock.restart());
 
 	sUserInput();
 
@@ -69,12 +67,6 @@ void Game::update()
 		sRender();
 		sEnemySpawner();
 	}
-
-#ifdef DEMO
-	ImGui::ShowDemoWindow();
-#endif // DEMO
-	ImGui::SFML::Render(m_window);
-	m_window.display();
 }
 
 void Game::run()
@@ -86,6 +78,8 @@ void Game::run()
 
 void Game::sMovement()
 {
+	const auto& windowSize = m_window.getSize();
+
 	m_player->cTransform->velocityNormalized.x = m_player->cInput->dPressed ? 1 : m_player->cInput->aPressed ? -1 : 0;
 	m_player->cTransform->velocityNormalized.y = m_player->cInput->sPressed ? 1 : m_player->cInput->wPressed ? -1 : 0;
 	m_player->cTransform->velocityNormalized.normalize();
@@ -96,10 +90,9 @@ void Game::sMovement()
 		e->cTransform->pos += (e->cTransform->velocityNormalized * speed ); // TODO(CP) : Multiply with deltatime?
 		sf::Vector2f newPos((float)e->cTransform->pos.x, (float)e->cTransform->pos.y);
 		e->cShape->shape.setPosition(newPos);
+	}
 
-		if (e->tag() == "enemy") {
-
-		const auto& windowSize = m_window.getSize();
+	for (auto& e : m_entityManager.getEntities("enemy")) {
 
 		const auto& pos = e->cTransform->pos;
 		const float& radius = e->cShape->radius;
@@ -112,8 +105,17 @@ void Game::sMovement()
 			e->cTransform->velocityNormalized.y *= -1;
 		}
 		e->cTransform->velocityNormalized.normalize();
-		}
 	}
+
+	Vec2& ppos = m_player->cTransform->pos;
+	double pwidth = m_player->cShape->radius *2;
+
+	// Clamp player to window
+	if (ppos.x < 0) ppos.x = 0;
+	else if (ppos.x + pwidth > windowSize.x) ppos.x = windowSize.x-pwidth;
+	if (ppos.y < 0) ppos.y = 0;
+	else if (ppos.y + pwidth > windowSize.y) ppos.y = windowSize.y-pwidth;
+
 }
 
 void Game::sUserInput()
@@ -131,12 +133,25 @@ void Game::sUserInput()
 			m_running = false;
 			break;
 		case sf::Event::Resized:
-			// TODO(CP)
+		{
+			// TODO(CP) : Do it properly 
+			const sf::Vector2u ws = m_window.getSize();
+			sf::View view = m_window.getView();
+			view.setSize(ws.x, ws.y);
+			view.setCenter(ws.x / 2, ws.y / 2);
+			m_window.setView(view);
+
+			std::cout << "Window Resized " << ws.x << ", " << ws.y << 
+			"\nNew Centre: "<<ws.x/2 << ", "<<ws.y/2 << std::endl;
+		}
 			break;
 		case sf::Event::KeyPressed:
 		{
 			switch (event.key.code)
 			{
+			case sf::Keyboard::P:
+				m_paused = !m_paused;
+				break;
 			case sf::Keyboard::W:
 				m_player->cInput->wPressed = true;
 				break;
@@ -205,10 +220,19 @@ void Game::sUserInput()
 
 void Game::sRender()
 {
+	m_window.clear(sf::Color::Green);
+	ImGui::SFML::Update(m_window, m_deltaClock.restart());
+
 	// Each entity has shape component
 	for (auto& e : m_entityManager.getEntities()) {
 		m_window.draw(e->cShape->shape);
 	}
+
+#ifdef DEMO
+	ImGui::ShowDemoWindow();
+#endif // DEMO
+	ImGui::SFML::Render(m_window);
+	m_window.display();
 }
 
 void Game::sEnemySpawner()

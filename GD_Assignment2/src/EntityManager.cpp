@@ -5,7 +5,7 @@
 void EntityManager::init(const std::vector<std::string> toAddTags)
 {
 	for (const std::string& tag : toAddTags) {
-		auto e = std::make_shared<Entity>(tag, m_entitiesCount++);
+		auto e = std::shared_ptr<Entity>(new Entity(tag, m_entitiesCount++));
 		m_entities.push_back(e);
 		m_entityMap[tag].push_back(e);
 	}
@@ -24,7 +24,7 @@ void EntityManager::update()
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string& tag)
 {
-	std::shared_ptr<Entity> entity = std::make_shared<Entity>(tag, m_entitiesCount++);
+	std::shared_ptr<Entity> entity = std::shared_ptr<Entity>(new Entity(tag, m_entitiesCount++));
 	m_toAdd.push_back(entity);
 	return entity;
 }
@@ -36,7 +36,6 @@ EntityVec& EntityManager::getEntities()
 
 EntityVec& EntityManager::getEntities(const std::string& tag)
 {
-	std::cout << "Entities count ( tag = " << tag << " ) : " << m_entityMap.count(tag);
 	assert(m_entityMap.find(tag) != m_entityMap.end() && ("No entities found with tag"));
 	return m_entityMap[tag];
 }

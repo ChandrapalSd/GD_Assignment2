@@ -4,8 +4,8 @@
 
 class Entity
 {
-public: // TODO(CP) : make it private, only accessible via EntityManager
-	Entity();
+private:
+	Entity() = delete;
 	Entity(std::string m_tag, size_t id);
 public:
 
