@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -16,6 +17,11 @@ Game::Game(uint32_t wWidth, uint32_t wHeight, const std::string title)
 
 	// initialize IMGUI and create a clock used for its internal timing
 	ImGui::SFML::Init(m_window);
+
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.WantCaptureMouse = true;
+	ImGui::CaptureMouseFromApp(true);
 
 	// scale the imgui ui by a given factor, does not affect text size
 	ImGui::GetStyle().ScaleAllSizes(1.0f);
@@ -131,9 +137,14 @@ void Game::sMovement()
 		}
 		e->cTransform->velocityNormalized.normalize();
 	}
+	for (auto& b : m_entityManager.getEntities("bullet")) {
+		const auto& pos = b->cTransform->pos;
+		if (pos.x < 0 || pos.x > windowSize.x || pos.y < 0 || pos.y> windowSize.y) {
+			// TODO(CP) : destroy b
+		}
+	}
 
 	Vec2& ppos = m_player->cTransform->pos;
-
 	// Clamp player to window
 	const float pradius = m_player->cShape->radius;
 	if (ppos.x - pradius < 0) ppos.x = pradius;
@@ -160,7 +171,7 @@ void Game::sUserInput()
 		case sf::Event::Resized:
 		{
 			// TODO(CP) : Do it properly 
-			const sf::Vector2u ws = m_window.getSize();
+			const sf::Vector2u ws(event.size.width, event.size.height);
 			sf::View view = m_window.getView();
 			view.setSize(ws.x, ws.y);
 			view.setCenter(ws.x / 2, ws.y / 2);
@@ -213,6 +224,7 @@ void Game::sUserInput()
 		break;
 		case sf::Event::MouseButtonPressed:
 		{
+			if (ImGui::GetIO().WantCaptureMouse) continue;
 			switch (event.key.code)
 			{
 			case sf::Mouse::Left:
@@ -226,6 +238,7 @@ void Game::sUserInput()
 		break;
 		case sf::Event::MouseButtonReleased:
 		{
+			if (ImGui::GetIO().WantCaptureMouse) continue;
 			switch (event.key.code)
 			{
 			case sf::Mouse::Left:
@@ -267,6 +280,8 @@ void Game::sRender()
 	
 	ImGui::SFML::Update(m_window, m_deltaClock.restart());
 
+	const auto ws = m_window.getSize();
+
 	// Each entity has shape component
 	for (auto& e : m_entityManager.getEntities()) {
 		m_window.draw(e->cShape->shape);
@@ -280,6 +295,17 @@ void Game::sRender()
 		{
 			uiForEntity(e);
 		}
+	}
+	
+	if (ImGui::CollapsingHeader("Debug Mouse")) {
+		auto mpos = (sf::Mouse::getPosition(m_window));
+		auto mposMapped = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+		std::stringstream out;
+		out << "Pos         : " << mpos.x << ", " << mpos.y << "\n"
+			<< "Pos Mapped  : " << mposMapped.x << ", " << mposMapped.y << "\n"
+			<< "Window Size : " << ws.x << ", " << ws.y;
+		
+		ImGui::Text(out.str().c_str());
 	}
 	ImGui::End();
 
@@ -303,9 +329,12 @@ void Game::sPlayerWeapon()
 		m_player->cGun->lastSpawned = currTime;
 		const auto ppos = m_player->cTransform->pos;
 
+		auto mpos = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
+		Vec2 towards(Vec2(mpos.x, mpos.y) - ppos);
+		towards.normalize();
+
 		auto bullet = m_entityManager.addEntity("bullet");
-		// TODO(CP) : bullet towards mouse
-		bullet->cTransform = std::make_shared<CTransform>(ppos, 5);
+		bullet->cTransform = std::make_shared<CTransform>(ppos, 5, towards);
 		bullet->cShape = std::make_shared<CShape>(3);
 		bullet->cShape->shape.setFillColor(sf::Color::Black);
 		bullet->cShape->shape.setOutlineColor(sf::Color::Red);

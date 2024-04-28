@@ -36,7 +36,6 @@ EntityVec& EntityManager::getEntities()
 
 EntityVec& EntityManager::getEntities(const std::string& tag)
 {
-	assert(m_entityMap.find(tag) != m_entityMap.end() && ("No entities found with tag"));
 	return m_entityMap[tag];
 }
 
