@@ -96,6 +96,7 @@ void Game::update()
 		sRender();
 		sEnemySpawner();
 		sPlayerWeapon();
+		sLifetimeManagement();
 	}
 }
 
@@ -137,12 +138,7 @@ void Game::sMovement()
 		}
 		e->cTransform->velocityNormalized.normalize();
 	}
-	for (auto& b : m_entityManager.getEntities("bullet")) {
-		const auto& pos = b->cTransform->pos;
-		if (pos.x < 0 || pos.x > windowSize.x || pos.y < 0 || pos.y> windowSize.y) {
-			// TODO(CP) : destroy b
-		}
-	}
+
 
 	Vec2& ppos = m_player->cTransform->pos;
 	// Clamp player to window
@@ -333,15 +329,32 @@ void Game::sPlayerWeapon()
 		Vec2 towards(Vec2(mpos.x, mpos.y) - ppos);
 		towards.normalize();
 
+		const float bRadius = 3;
+
 		auto bullet = m_entityManager.addEntity("bullet");
 		bullet->cTransform = std::make_shared<CTransform>(ppos, 5, towards);
-		bullet->cShape = std::make_shared<CShape>(3);
+		bullet->cShape = std::make_shared<CShape>(bRadius);
 		bullet->cShape->shape.setFillColor(sf::Color::Black);
 		bullet->cShape->shape.setOutlineColor(sf::Color::Red);
 		bullet->cShape->shape.setOutlineThickness(1);
 
+		bullet->cLifespan = std::make_shared<CLifespan>(120);
+
 		static uint32_t bulletCount = 0;
 		std::cout << "Bullet Count : " << std::to_string(++bulletCount) << std::endl;
+	}
+
+}
+
+void Game::sLifetimeManagement()
+{
+	const auto ws = m_window.getSize();
+
+	for (auto& b : m_entityManager.getEntities("bullet")) {
+		const auto& pos = b->cTransform->pos;
+		if (pos.x < 0 || pos.x > ws.x || pos.y < 0 || pos.y> ws.y) {
+			b->destroy();
+		}
 	}
 }
 

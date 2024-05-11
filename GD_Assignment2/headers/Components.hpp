@@ -56,9 +56,14 @@ struct CScore
 	sf::Text scoreText;
 };
 
-struct CLifespan
+class CLifespan
 {
+public:
 	size_t framesLeft;
+
+	CLifespan(const size_t framesLeft=30)
+		:framesLeft(framesLeft)
+	{}
 };
 
 class CGun

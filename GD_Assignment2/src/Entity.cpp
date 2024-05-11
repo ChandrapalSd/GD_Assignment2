@@ -12,17 +12,17 @@ void Entity::destroy()
 	m_alive = false;
 }
 
-bool Entity::isAlive()
+bool Entity::isAlive() const
 {
 	return m_alive;
 }
 
-std::string& Entity::tag()
+const std::string& Entity::tag() const
 {
 	return m_tag;
 }
 
-size_t Entity::id()
+size_t Entity::id() const
 {
 	return m_id;
 }

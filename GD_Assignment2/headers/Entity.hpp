@@ -10,9 +10,9 @@ private:
 public:
 
 	void destroy();
-	bool isAlive();
-	std::string& tag();
-	size_t id();
+	bool isAlive() const;
+	const std::string& tag() const;
+	size_t id() const;
 
 private:
 	std::string m_tag = "notag";

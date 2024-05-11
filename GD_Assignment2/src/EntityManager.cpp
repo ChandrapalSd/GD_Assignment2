@@ -19,7 +19,13 @@ void EntityManager::update()
 	}
 	m_toAdd.clear();
 
-	// TODO(CP) : remove dead entities
+	// remove dead entities
+	m_entities.erase(std::remove_if(m_entities.begin(), m_entities.end(), [](const auto& e) {return !e->isAlive(); }), m_entities.end());
+
+	for (auto& pair : m_entityMap)
+	{
+		pair.second.erase(std::remove_if(pair.second.begin(), pair.second.end(), [](const auto& e) {return !e->isAlive(); }), pair.second.end());
+	}
 }
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string& tag)

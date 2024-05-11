@@ -21,6 +21,7 @@ public:
 	void sRender();
 	void sEnemySpawner();
 	void sPlayerWeapon();
+	void sLifetimeManagement();
 
 	[[nodiscard]] inline bool isRunning() const noexcept
 	{
