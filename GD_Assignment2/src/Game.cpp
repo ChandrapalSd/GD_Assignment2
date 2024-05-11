@@ -121,7 +121,7 @@ void Game::sMovement()
 		e->cTransform->pos += (e->cTransform->velocityNormalized * speed ); // TODO(CP) : Multiply with deltatime?
 		sf::Vector2f newPos((float)e->cTransform->pos.x, (float)e->cTransform->pos.y);
 		e->cShape->shape.setPosition(newPos);
-		e->cShape->shape.rotate(speed);
+		e->cShape->shape.rotate(speed/2);
 	}
 
 	for (auto& e : m_entityManager.getEntities("enemy")) {
@@ -371,6 +371,11 @@ void Game::sLifetimeManagement()
 	}
 }
 
+bool areColliding(Vec2 apos, Vec2 bpos, float arad, float brad)
+{
+	return Vec2::dist(apos, bpos) < arad + brad;
+}
+
 void Game::sCollision()
 {
 	const Vec2 ppos = m_player->cTransform->pos;
@@ -378,13 +383,25 @@ void Game::sCollision()
 	static uint32_t collisionCount = 0;
 	for (auto& e : m_entityManager.getEntities("enemy")) 
 	{
-		if (Vec2::dist(ppos, e->cTransform->pos) < prad + e->cShape->radius)
+		/*if (Vec2::dist(ppos, e->cTransform->pos) < prad + e->cShape->radius)*/
+		if(areColliding(e->cTransform->pos, ppos, e->cShape->radius, prad))
 		{
 			std::cout << "Collided " << ++collisionCount << " Times" << std::endl;
 			e->cTransform->velocityNormalized *= -1;
 		}
+			
+
+		for (auto& b : m_entityManager.getEntities("bullet"))
+		{
+			if (areColliding(e->cTransform->pos, b->cTransform->pos, e->cShape->radius, b->cShape->radius))
+			{
+				b->destroy();
+				e->destroy();
+			}
+		}
 	}
 }
+
 
 void Game::sScore()
 {

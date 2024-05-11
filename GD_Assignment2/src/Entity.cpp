@@ -8,7 +8,6 @@ Entity::Entity(std::string tag, size_t id)
 
 void Entity::destroy()
 {
-	assert(isAlive() && "Entity is already dead!");
 	m_alive = false;
 }
 
