@@ -332,13 +332,13 @@ void Game::sPlayerWeapon()
 		const float bRadius = 3;
 
 		auto bullet = m_entityManager.addEntity("bullet");
-		bullet->cTransform = std::make_shared<CTransform>(ppos, 5, towards);
+		bullet->cTransform = std::make_shared<CTransform>(ppos, 6, towards);
 		bullet->cShape = std::make_shared<CShape>(bRadius);
 		bullet->cShape->shape.setFillColor(sf::Color::Black);
 		bullet->cShape->shape.setOutlineColor(sf::Color::Red);
 		bullet->cShape->shape.setOutlineThickness(1);
 
-		bullet->cLifespan = std::make_shared<CLifespan>(120);
+		bullet->cLifespan = std::make_shared<CLifespan>(150);
 
 		static uint32_t bulletCount = 0;
 		std::cout << "Bullet Count : " << std::to_string(++bulletCount) << std::endl;
@@ -352,9 +352,22 @@ void Game::sLifetimeManagement()
 
 	for (auto& b : m_entityManager.getEntities("bullet")) {
 		const auto& pos = b->cTransform->pos;
-		if (pos.x < 0 || pos.x > ws.x || pos.y < 0 || pos.y> ws.y) {
+		size_t& fl = b->cLifespan->framesLeft;
+		size_t maxFrames = b->cLifespan->startDisapearingAtFrames;
+
+		uint8_t minOpacity = 40, maxOpacity = b->cShape->shape.getFillColor().a;
+		uint8_t opacity = lerp(minOpacity, maxOpacity, (float)fl / maxFrames);
+		auto fcolor = b->cShape->shape.getFillColor();
+		auto ocolor = b->cShape->shape.getOutlineColor();
+		fcolor.a = opacity, ocolor.a = opacity;
+		b->cShape->shape.setFillColor(fcolor);
+		b->cShape->shape.setOutlineColor(ocolor);
+
+		if (fl==0 || pos.x < 0 || pos.x > ws.x || pos.y < 0 || pos.y> ws.y) {
 			b->destroy();
 		}
+
+		fl--;
 	}
 }
 

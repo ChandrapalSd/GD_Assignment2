@@ -60,9 +60,10 @@ class CLifespan
 {
 public:
 	size_t framesLeft;
+	size_t startDisapearingAtFrames;
 
-	CLifespan(const size_t framesLeft=30)
-		:framesLeft(framesLeft)
+	CLifespan(const size_t framesLeft=30, const size_t startDisapearingAtFrames=120)
+		:framesLeft(framesLeft), startDisapearingAtFrames(startDisapearingAtFrames)
 	{}
 };
 
