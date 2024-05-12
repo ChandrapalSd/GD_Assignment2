@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -64,12 +65,12 @@ void Game::init(const std::string& filepath)
 	m_background.setColor(sf::Color(255,255,255,100));
 
 	srand((unsigned int)time(0));
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 15; i++)
 	{
 		const float rMin = 10.0, rMax = 50.0;
 		const uint8_t cMin = 10, cMax = 255;
 		float radius = randInRange(rMin, rMax);
-		int pCount = randInRange<int>(3, 21);
+		int pCount = randInRange<int>(3, 11);
 		Vec2 pos(randInRange(radius, ws.x-radius), randInRange(radius, ws.y-radius));
 		sf::Color clr(randInRange(cMin, cMax), randInRange(cMin, cMax), randInRange(cMin, cMax));
 
@@ -376,6 +377,31 @@ bool areColliding(Vec2 apos, Vec2 bpos, float arad, float brad)
 	return Vec2::dist(apos, bpos) < arad + brad;
 }
 
+void Game::shootEnemy(std::shared_ptr<Entity>& e)
+{
+	e->destroy();
+
+	Vec2 center = e->cTransform->pos;
+	float speed = e->cTransform->speed;
+	size_t vertCount = e->cShape->pointCount;
+	float radius = e->cShape->radius;
+	float radiusFrag = radius / 2;
+	sf::Color clr = e->cShape->shape.getFillColor();
+
+	for (int i = 0; i < vertCount; i++)
+	{		
+		const float angle = (TAU/vertCount)*i;
+		Vec2 pos = Vec2(std::cosf(angle), std::sinf(angle)) * radiusFrag + center;
+
+		std::shared_ptr<Entity> e = m_entityManager.addEntity("enemy-fragments");
+		e->cTransform = std::make_shared<CTransform>(pos, speed, Vec2::normalize(pos-center));
+		e->cShape = std::make_shared<CShape>(radiusFrag, vertCount);
+		e->cShape->shape.setFillColor(clr);
+		e->cShape->shape.setOutlineColor(sf::Color::White);
+		e->cShape->shape.setOutlineThickness(2);
+	}
+}
+
 void Game::sCollision()
 {
 	const Vec2 ppos = m_player->cTransform->pos;
@@ -396,7 +422,7 @@ void Game::sCollision()
 			if (areColliding(e->cTransform->pos, b->cTransform->pos, e->cShape->radius, b->cShape->radius))
 			{
 				b->destroy();
-				e->destroy();
+				shootEnemy(e);
 			}
 		}
 	}

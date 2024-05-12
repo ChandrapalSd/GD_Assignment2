@@ -1,6 +1,9 @@
 #pragma once
 #include <random>
 
+constexpr float TAU = 6.283185307179586f;
+constexpr float PI = 3.141592653589793f;
+
 template <typename T>
 inline T randInRange(T mn, T mx) {
 	return (T)(((float)rand() / RAND_MAX)* (mx - mn) + mn);

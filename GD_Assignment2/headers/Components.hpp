@@ -24,7 +24,7 @@ public:
 	
 	CShape() = delete;
 	CShape(float radius, size_t pointCount=30)
-		:radius(radius), pointCount(30), shape(sf::CircleShape(radius, pointCount))
+		:radius(radius), pointCount(pointCount), shape(sf::CircleShape(radius, pointCount))
 	{
 		shape.setOrigin(radius, radius);
 		assert(radius != 0 && "Radius must not be zero");

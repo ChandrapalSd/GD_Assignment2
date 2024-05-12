@@ -23,6 +23,8 @@ public:
 	void sPlayerWeapon();
 	void sLifetimeManagement();
 
+	void shootEnemy(std::shared_ptr<Entity>& e);
+
 	[[nodiscard]] inline bool isRunning() const noexcept
 	{
 		return m_running;
