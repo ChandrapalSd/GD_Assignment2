@@ -340,9 +340,6 @@ void Game::sPlayerWeapon()
 		bullet->cShape->shape.setOutlineThickness(1);
 
 		bullet->cLifespan = std::make_shared<CLifespan>(150);
-
-		static uint32_t bulletCount = 0;
-		std::cout << "Bullet Count : " << std::to_string(++bulletCount) << std::endl;
 	}
 
 }
@@ -352,6 +349,25 @@ void Game::sLifetimeManagement()
 	const auto ws = m_window.getSize();
 
 	for (auto& b : m_entityManager.getEntities("bullet")) {
+		const auto& pos = b->cTransform->pos;
+		size_t& fl = b->cLifespan->framesLeft;
+		size_t maxFrames = b->cLifespan->startDisapearingAtFrames;
+
+		uint8_t minOpacity = 40, maxOpacity = b->cShape->shape.getFillColor().a;
+		uint8_t opacity = lerp(minOpacity, maxOpacity, (float)fl / maxFrames);
+		auto fcolor = b->cShape->shape.getFillColor();
+		auto ocolor = b->cShape->shape.getOutlineColor();
+		fcolor.a = opacity, ocolor.a = opacity;
+		b->cShape->shape.setFillColor(fcolor);
+		b->cShape->shape.setOutlineColor(ocolor);
+
+		if (fl==0 || pos.x < 0 || pos.x > ws.x || pos.y < 0 || pos.y> ws.y) {
+			b->destroy();
+		}
+
+		fl--;
+	}
+	for (auto& b : m_entityManager.getEntities("enemy-fragments")) {
 		const auto& pos = b->cTransform->pos;
 		size_t& fl = b->cLifespan->framesLeft;
 		size_t maxFrames = b->cLifespan->startDisapearingAtFrames;
@@ -394,11 +410,14 @@ void Game::shootEnemy(std::shared_ptr<Entity>& e)
 		Vec2 pos = Vec2(std::cosf(angle), std::sinf(angle)) * radiusFrag + center;
 
 		std::shared_ptr<Entity> e = m_entityManager.addEntity("enemy-fragments");
-		e->cTransform = std::make_shared<CTransform>(pos, speed, Vec2::normalize(pos-center));
+		e->cTransform = std::make_shared<CTransform>(pos, speed/2, Vec2::normalize(pos-center));
+		
 		e->cShape = std::make_shared<CShape>(radiusFrag, vertCount);
 		e->cShape->shape.setFillColor(clr);
 		e->cShape->shape.setOutlineColor(sf::Color::White);
 		e->cShape->shape.setOutlineThickness(2);
+
+		e->cLifespan = std::make_shared<CLifespan>(150, 90);
 	}
 }
 
@@ -406,14 +425,14 @@ void Game::sCollision()
 {
 	const Vec2 ppos = m_player->cTransform->pos;
 	const float prad = m_player->cShape->radius;
-	static uint32_t collisionCount = 0;
 	for (auto& e : m_entityManager.getEntities("enemy")) 
 	{
 		/*if (Vec2::dist(ppos, e->cTransform->pos) < prad + e->cShape->radius)*/
 		if(areColliding(e->cTransform->pos, ppos, e->cShape->radius, prad))
 		{
-			std::cout << "Collided " << ++collisionCount << " Times" << std::endl;
 			e->cTransform->velocityNormalized *= -1;
+			// TODO(CP) : properly push out enemy out of player
+			e->cTransform->pos += e->cTransform->velocityNormalized * ((prad + e->cShape->radius) - (e->cTransform->pos - ppos).length());
 		}
 			
 
