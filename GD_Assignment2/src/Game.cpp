@@ -253,19 +253,12 @@ static void uiForEntity(const std::shared_ptr<Entity> const& e)
 	}
 }
 
-void Game::sRender()
+void Game::DrawImGuiUI(sf::Time deltaTime)
 {
-	m_window.clear(sf::Color::Black);
-	m_window.draw(m_background);
-	
-	ImGui::SFML::Update(m_window, m_deltaClock.restart());
+	ImGui::SFML::Update(m_window, deltaTime);
 
 	const auto ws = m_window.getSize();
 
-	// Each entity has shape component
-	for (auto& e : m_entityManager.getEntities()) {
-		m_window.draw(e->cShape->shape);
-	}
 
 	ImGui::Begin("Debug panel");
 	ImGui::Text("Press P to Pause / Resume");
@@ -280,7 +273,7 @@ void Game::sRender()
 			ImGui::Unindent(paddingLeft);
 		}
 	}
-	
+
 	if (ImGui::CollapsingHeader("Debug Mouse")) {
 		auto mpos = (sf::Mouse::getPosition(m_window));
 		auto mposMapped = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
@@ -288,7 +281,7 @@ void Game::sRender()
 		out << "Pos         : " << mpos.x << ", " << mpos.y << "\n"
 			<< "Pos Mapped  : " << mposMapped.x << ", " << mposMapped.y << "\n"
 			<< "Window Size : " << ws.x << ", " << ws.y;
-		
+
 		ImGui::Text(out.str().c_str());
 	}
 	ImGui::End();
@@ -296,8 +289,22 @@ void Game::sRender()
 #ifdef DEMO
 	ImGui::ShowDemoWindow();
 #endif // DEMO
-	m_window.draw(m_player->cScore->scoreText);
 	ImGui::SFML::Render(m_window);
+}
+
+void Game::sRender()
+{
+	sf::Time deltaTime = m_deltaClock.restart();
+	m_window.clear(sf::Color::Black);
+	m_window.draw(m_background);
+
+	// Each entity has shape component
+	for (auto& e : m_entityManager.getEntities()) {
+		m_window.draw(e->cShape->shape);
+	}
+	m_window.draw(m_player->cScore->scoreText);
+
+	DrawImGuiUI(deltaTime);
 	m_window.display();
 }
 

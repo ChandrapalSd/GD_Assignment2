@@ -14,6 +14,8 @@ public:
 	void update();
 	void run();
 
+	void DrawImGuiUI(sf::Time deltaTime);
+
 	// Systems
 	void sUserInput();
 	void sMovement();
