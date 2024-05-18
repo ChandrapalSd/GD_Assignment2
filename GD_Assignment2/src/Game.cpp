@@ -74,13 +74,13 @@ void Game::update()
 	sUserInput();
 
 	if (!m_paused) {
-		sMovement();
-		sCollision();
-		sScore();
+		if(gameState.EnableSMovement) sMovement();
+		if (gameState.EnableSCollision) sCollision();
+		if (gameState.EnableSScore) sScore();
 		sRender();
-		sEnemySpawner();
-		sPlayerWeapon();
-		sLifetimeManagement();
+		if (gameState.EnableSEnemySpawner) sEnemySpawner();
+		if (gameState.EnableSPlayerWeapon) sPlayerWeapon();
+		if (gameState.EnableSLifetimeManagement) sLifetimeManagement();
 	}
 }
 
@@ -282,6 +282,17 @@ void Game::DrawImGuiUI(sf::Time deltaTime)
 		}
 	}
 
+	if (ImGui::CollapsingHeader("Systems")) {
+		// ImGui::Checkbox("SUserInput", &gameState.EnableSUserInput);
+		ImGui::Checkbox("SMovement", &gameState.EnableSMovement);
+		ImGui::Checkbox("SCollision", &gameState.EnableSCollision);
+		ImGui::Checkbox("SScore", &gameState.EnableSScore);
+		ImGui::Checkbox("SRender", &gameState.EnableSRender);
+		ImGui::Checkbox("SEnemySpawner", &gameState.EnableSEnemySpawner);
+		ImGui::Checkbox("SPlayerWeapon", &gameState.EnableSPlayerWeapon);
+		ImGui::Checkbox("SLifetimeManagement", &gameState.EnableSLifetimeManagement);
+	}
+
 	if (ImGui::CollapsingHeader("Debug Mouse")) {
 		auto mpos = (sf::Mouse::getPosition(m_window));
 		auto mposMapped = m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window));
@@ -304,13 +315,17 @@ void Game::sRender()
 {
 	sf::Time deltaTime = m_deltaClock.restart();
 	m_window.clear(sf::Color::Black);
-	m_window.draw(m_background);
 
-	// Each entity has shape component
-	for (auto& e : m_entityManager.getEntities()) {
-		m_window.draw(e->cShape->shape);
+	if (gameState.EnableSRender)
+	{
+		m_window.draw(m_background);
+
+		// Each entity has shape component
+		for (auto& e : m_entityManager.getEntities()) {
+			m_window.draw(e->cShape->shape);
+		}
+		m_window.draw(m_player->cScore->scoreText);
 	}
-	m_window.draw(m_player->cScore->scoreText);
 
 	DrawImGuiUI(deltaTime);
 	m_window.display();

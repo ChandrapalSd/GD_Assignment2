@@ -4,6 +4,17 @@
 #include <SFML/Graphics.hpp>
 #include <EntityManager.hpp>
 
+struct GameState {
+	bool EnableSUserInput = true;
+	bool EnableSMovement = true;
+	bool EnableSCollision = true;
+	bool EnableSScore = true;
+	bool EnableSRender = true;
+	bool EnableSEnemySpawner = true;
+	bool EnableSPlayerWeapon = true;
+	bool EnableSLifetimeManagement = true;
+};
+
 class Game
 {
 public:
@@ -35,6 +46,7 @@ public:
 
 private:
 	const Config config;
+	GameState gameState;
 	sf::RenderWindow m_window;
 	sf::Clock m_deltaClock;
 	EntityManager m_entityManager;
