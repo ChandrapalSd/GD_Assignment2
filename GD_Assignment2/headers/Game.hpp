@@ -1,15 +1,16 @@
 #pragma once
 #include "Entity.hpp"
+#include "Config.hpp"
 #include <SFML/Graphics.hpp>
 #include <EntityManager.hpp>
 
 class Game
 {
 public:
-	Game(uint32_t wWidth, uint32_t wHeight, const std::string title = "COMP4300 Assignment 2!");
+	Game(const std::string title = "COMP4300 Assignment 2!", const std::string configFilePath="res/config.txt");
 	~Game();
 
-	void init(const std::string& filepath);
+	void init();
 	void update();
 	void run();
 
@@ -31,6 +32,7 @@ public:
 	}
 
 private:
+	const Config config;
 	sf::RenderWindow m_window;
 	sf::Clock m_deltaClock;
 	EntityManager m_entityManager;

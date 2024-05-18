@@ -46,12 +46,11 @@ Config::Config(std::string filePath)
 				>> enemySR
 				>> enemyCR
 				>> enemySMin >> enemySMax
-				>> enemyFR >> enemyFG >> enemyFB
 				>> enemyOR >> enemyOG >> enemyOB
 				>> enemyOT
 				>> enemyVertMin >> enemyVertMax
 				>> enemyL
-				>> enemySP;
+				>> enemySI;
 		}
 		else if (token == "bullet")
 		{

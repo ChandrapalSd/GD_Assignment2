@@ -74,7 +74,7 @@ public:
 
 	long long coolDownTime = 1e+9; // ns
 
-	CGun(const long long coolDownTime_ms = 300 )
+	CGun(const uint64_t coolDownTime_ms = 300 )
 		: coolDownTime(coolDownTime_ms*1e+6),
 		lastSpawned(std::chrono::high_resolution_clock::now())
 	{}

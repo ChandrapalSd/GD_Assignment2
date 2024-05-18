@@ -11,10 +11,10 @@
 #include <imgui-SFML.h>
 
 
-Game::Game(uint32_t wWidth, uint32_t wHeight, const std::string title)
-	: m_window(sf::VideoMode(wWidth, wHeight), title)
+Game::Game(const std::string title, const std::string configFilePath)
+	: config(configFilePath), m_window(sf::VideoMode(config.windowWidth, config.windowHeight), title)
 {
-	m_window.setFramerateLimit(60);
+	m_window.setFramerateLimit(config.windowFPS);
 
 	// initialize IMGUI and create a clock used for its internal timing
 	ImGui::SFML::Init(m_window);
@@ -34,27 +34,27 @@ Game::~Game()
 	ImGui::SFML::Shutdown(m_window);
 }
 
-void Game::init(const std::string& filepath)
+void Game::init()
 {
-	m_font.loadFromFile("fonts/KillerTech.ttf");
+	m_font.loadFromFile(config.fontFilePath);
 	const auto ws = m_window.getSize();
 
 	m_entityManager.init({ "player" });
 	m_player = m_entityManager.getEntities("player").front();
-	m_player->cTransform = std::make_shared<CTransform>(Vec2((float)ws.x/2, (float)ws.y/2), 5, Vec2());
+	m_player->cTransform = std::make_shared<CTransform>(Vec2((float)ws.x/2, (float)ws.y/2), config.playerSpeed, Vec2());
 	m_player->cInput = std::make_shared<CInput>();
-	m_player->cShape = std::make_shared<CShape>(16, 6);
-	m_player->cShape->shape.setFillColor(sf::Color::Transparent);
-	m_player->cShape->shape.setOutlineColor(sf::Color::Red);
-	m_player->cShape->shape.setOutlineThickness(3);
-	m_player->cCollision = std::make_shared<CCollision>(10);
+	m_player->cShape = std::make_shared<CShape>(config.playerSR, config.playerVertices);
+	m_player->cShape->shape.setFillColor(sf::Color(config.playerFR, config.playerFG, config.playerFB, 100));
+	m_player->cShape->shape.setOutlineColor(sf::Color(config.playerOR, config.playerOG, config.playerOB));
+	m_player->cShape->shape.setOutlineThickness(config.playerOT);
+	m_player->cCollision = std::make_shared<CCollision>(config.playerCR);
 
-	m_player->cGun = std::make_shared<CGun>();
+	m_player->cGun = std::make_shared<CGun>(200);
 
 	m_player->cScore = std::make_shared<CScore>();
 	m_player->cScore->scoreText.setFont(m_font);
-	m_player->cScore->scoreText.setCharacterSize(20);
-	m_player->cScore->scoreText.setFillColor(sf::Color::White);
+	m_player->cScore->scoreText.setCharacterSize(config.fontSize);
+	m_player->cScore->scoreText.setFillColor(sf::Color(config.fontR, config.fontG, config.fontB));
 	m_player->cScore->scoreText.setPosition(3, 3);
 	m_player->cScore->scoreText.setString("Score : 0");
 
@@ -65,23 +65,6 @@ void Game::init(const std::string& filepath)
 	m_background.setColor(sf::Color(255,255,255,100));
 
 	srand((unsigned int)time(0));
-	for (int i = 0; i < 15; i++)
-	{
-		const float rMin = 10.0, rMax = 50.0;
-		const uint8_t cMin = 10, cMax = 255;
-		float radius = randInRange(rMin, rMax);
-		int pCount = randInRange<int>(3, 11);
-		Vec2 pos(randInRange(radius, ws.x-radius), randInRange(radius, ws.y-radius));
-		sf::Color clr(randInRange(cMin, cMax), randInRange(cMin, cMax), randInRange(cMin, cMax));
-
-		std::shared_ptr<Entity> e = m_entityManager.addEntity("enemy");
-		e->cTransform = std::make_shared<CTransform>(pos, randInRange(4.0f, 7.0f));
-		e->cShape = std::make_shared<CShape>(radius, pCount);
-		e->cShape->shape.setFillColor(clr);
-		e->cShape->shape.setOutlineColor(sf::Color::White);
-		e->cShape->shape.setOutlineThickness(2);
-		e->cCollision = std::make_shared<CCollision>(radius);
-	}
 }
 
 void Game::update()
@@ -171,7 +154,7 @@ void Game::sUserInput()
 			const sf::Vector2u ws(event.size.width, event.size.height);
 			sf::View view = m_window.getView();
 			view.setSize(ws.x, ws.y);
-			view.setCenter(ws.x / 2, ws.y / 2);
+			view.setCenter(ws.x / 2.0f, ws.y / 2.0f);
 			m_window.setView(view);
 
 			std::cout << "Window Resized " << ws.x << ", " << ws.y << 
@@ -286,11 +269,15 @@ void Game::sRender()
 
 	ImGui::Begin("Debug panel");
 	ImGui::Text("Press P to Pause / Resume");
-	if (ImGui::CollapsingHeader("Entities"))
+	std::string titleEntitiesHeader = "Entities (" + std::to_string(m_entityManager.getEntities().size()) + ") ###EntitiesHeader";
+	if (ImGui::CollapsingHeader(titleEntitiesHeader.c_str()))
 	{
 		for (auto& e : m_entityManager.getEntities())
 		{
+			const float paddingLeft = 10;
+			ImGui::Indent(paddingLeft);
 			uiForEntity(e);
+			ImGui::Unindent(paddingLeft);
 		}
 	}
 	
@@ -316,7 +303,28 @@ void Game::sRender()
 
 void Game::sEnemySpawner()
 {
+	const auto ws = m_window.getSize();
+	static uint32_t framesPast = 0;
+	if (framesPast++ > config.enemySI)
+	{
+		const uint8_t cMin = 10, cMax = 255;
+		const float radius = config.enemySR, radiusCollision = config.enemyCR;
 
+		int pCount = randInRange(config.enemyVertMin, config.enemyVertMax);
+		Vec2 pos(randInRange(radius, ws.x - radius), randInRange(radius, ws.y - radius));
+		sf::Color clr(randInRange(cMin, cMax), randInRange(cMin, cMax), randInRange(cMin, cMax));
+		float speed = randInRange(config.enemySMin, config.enemySMax);
+		size_t verticesCount = randInRange(config.enemyVertMin, config.enemyVertMax);
+
+		std::shared_ptr<Entity> e = m_entityManager.addEntity("enemy");
+		e->cTransform = std::make_shared<CTransform>(pos, speed);
+		e->cShape = std::make_shared<CShape>(radius, verticesCount);
+		e->cShape->shape.setFillColor(clr);
+		e->cShape->shape.setOutlineColor(sf::Color(config.enemyOR, config.enemyOG, config.enemyOB));
+		e->cShape->shape.setOutlineThickness(config.enemyOT);
+		e->cCollision = std::make_shared<CCollision>(radiusCollision);
+		framesPast = 0;
+	}
 }
 
 void Game::sPlayerWeapon()
@@ -330,16 +338,19 @@ void Game::sPlayerWeapon()
 		Vec2 towards(Vec2(mpos.x, mpos.y) - ppos);
 		towards.normalize();
 
-		const float bRadius = 3;
+		const float radius = config.bulletSR, radiusCollision = config.bulletCR;
+		const float speed = config.bulletSpeed;
 
 		auto bullet = m_entityManager.addEntity("bullet");
-		bullet->cTransform = std::make_shared<CTransform>(ppos, 6, towards);
-		bullet->cShape = std::make_shared<CShape>(bRadius);
-		bullet->cShape->shape.setFillColor(sf::Color::Black);
-		bullet->cShape->shape.setOutlineColor(sf::Color::Red);
-		bullet->cShape->shape.setOutlineThickness(1);
+		bullet->cTransform = std::make_shared<CTransform>(ppos, speed, towards);
+		bullet->cShape = std::make_shared<CShape>(radius, config.bulletVertices);
+		bullet->cShape->shape.setFillColor(sf::Color(config.bulletFR, config.bulletFG, config.bulletFB));
+		bullet->cShape->shape.setOutlineColor(sf::Color(config.bulletOR, config.bulletOG, config.bulletOB));
+		bullet->cShape->shape.setOutlineThickness(config.bulletOT);
 
-		bullet->cLifespan = std::make_shared<CLifespan>(150);
+		bullet->cCollision = std::make_shared<CCollision>(radiusCollision);
+
+		bullet->cLifespan = std::make_shared<CLifespan>(config.bulletLifespan, config.bulletLifespan/1.5f);
 	}
 
 }
@@ -353,10 +364,10 @@ void Game::sLifetimeManagement()
 		size_t& fl = b->cLifespan->framesLeft;
 		size_t maxFrames = b->cLifespan->startDisapearingAtFrames;
 
-		uint8_t minOpacity = 40, maxOpacity = b->cShape->shape.getFillColor().a;
+		uint8_t minOpacity = 50, maxOpacity = 255;
 		uint8_t opacity = lerp(minOpacity, maxOpacity, (float)fl / maxFrames);
-		auto fcolor = b->cShape->shape.getFillColor();
-		auto ocolor = b->cShape->shape.getOutlineColor();
+		sf::Color fcolor = b->cShape->shape.getFillColor();
+		sf::Color ocolor = b->cShape->shape.getOutlineColor();
 		fcolor.a = opacity, ocolor.a = opacity;
 		b->cShape->shape.setFillColor(fcolor);
 		b->cShape->shape.setOutlineColor(ocolor);
@@ -372,10 +383,10 @@ void Game::sLifetimeManagement()
 		size_t& fl = b->cLifespan->framesLeft;
 		size_t maxFrames = b->cLifespan->startDisapearingAtFrames;
 
-		uint8_t minOpacity = 40, maxOpacity = b->cShape->shape.getFillColor().a;
+		uint8_t minOpacity = 40, maxOpacity = 255;
 		uint8_t opacity = lerp(minOpacity, maxOpacity, (float)fl / maxFrames);
-		auto fcolor = b->cShape->shape.getFillColor();
-		auto ocolor = b->cShape->shape.getOutlineColor();
+		sf::Color fcolor = b->cShape->shape.getFillColor();
+		sf::Color ocolor = b->cShape->shape.getOutlineColor();
 		fcolor.a = opacity, ocolor.a = opacity;
 		b->cShape->shape.setFillColor(fcolor);
 		b->cShape->shape.setOutlineColor(ocolor);
@@ -417,7 +428,7 @@ void Game::shootEnemy(std::shared_ptr<Entity>& e)
 		e->cShape->shape.setOutlineColor(sf::Color::White);
 		e->cShape->shape.setOutlineThickness(2);
 
-		e->cLifespan = std::make_shared<CLifespan>(150, 90);
+		e->cLifespan = std::make_shared<CLifespan>(150, 120);
 	}
 }
 
@@ -438,7 +449,7 @@ void Game::sCollision()
 
 		for (auto& b : m_entityManager.getEntities("bullet"))
 		{
-			if (areColliding(e->cTransform->pos, b->cTransform->pos, e->cShape->radius, b->cShape->radius))
+			if (areColliding(e->cTransform->pos, b->cTransform->pos, e->cShape->radius, b->cCollision->radius))
 			{
 				b->destroy();
 				shootEnemy(e);

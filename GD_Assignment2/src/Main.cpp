@@ -2,11 +2,8 @@
 
 int main()
 {
-	uint32_t wWidth = 1280/1.2;
-	uint32_t wHeight = 720/1.2;
-
-	Game game(wWidth, wHeight);
-	game.init("config.txt");
+	Game game{};
+	game.init();
 	game.run();
 
 	return 0;

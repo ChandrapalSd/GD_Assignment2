@@ -27,12 +27,11 @@ public:
 	size_t enemySR; // Shape Radius
 	size_t enemyCR; // Collision Radius
 	float enemySMin, enemySMax; // Speed range
-	size_t enemyFR, enemyFG, enemyFB; // Fill Color
 	size_t enemyOR, enemyOG, enemyOB; // Outline Color
 	size_t enemyOT; // Outline Thickness
 	size_t enemyVertMin, enemyVertMax; // Shape vertices count or point count
 	size_t enemyL; // Small lifespan
-	size_t enemySP; // Spawn interval
+	size_t enemySI; // Spawn interval (number of frames between two spawns)
 
 	size_t bulletSR; // Shape Radius
 	size_t bulletCR; // Collision Radius
