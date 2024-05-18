@@ -458,7 +458,7 @@ void Game::shootEnemy(std::shared_ptr<Entity>& e)
 		e->cShape->shape.setOutlineColor(sf::Color::White);
 		e->cShape->shape.setOutlineThickness(2);
 
-		e->cLifespan = std::make_shared<CLifespan>(150, 120);
+		e->cLifespan = std::make_shared<CLifespan>(config.enemyL, config.enemyL);
 	}
 }
 
@@ -487,7 +487,6 @@ void Game::sCollision()
 		}
 	}
 }
-
 
 void Game::sScore()
 {
