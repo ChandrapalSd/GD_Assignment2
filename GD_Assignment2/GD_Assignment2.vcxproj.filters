@@ -98,7 +98,7 @@
     <ClInclude Include="headers\Util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\Config.h">
+    <ClInclude Include="headers\Config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

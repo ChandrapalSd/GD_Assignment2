@@ -240,7 +240,7 @@
     <ClCompile Include="src\Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\Config.h" />
+    <ClInclude Include="headers\Config.hpp" />
     <ClInclude Include="headers\EntityManager.hpp" />
     <ClInclude Include="headers\Entity.hpp" />
     <ClInclude Include="headers\Game.hpp" />
