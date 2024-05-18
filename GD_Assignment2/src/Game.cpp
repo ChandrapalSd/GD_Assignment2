@@ -267,10 +267,18 @@ void Game::DrawImGuiUI(sf::Time deltaTime)
 	{
 		for (auto& e : m_entityManager.getEntities())
 		{
-			const float paddingLeft = 10;
-			ImGui::Indent(paddingLeft);
+			const sf::Color clr = e->cShape->shape.getFillColor();
+			const ImVec4 btnClr{ clr.r / 255.0f,clr.g / 255.0f,clr.b / 255.0f,clr.a / 255.0f };
+			const std::string btnDes_id = "D##EntityBtnKill" + std::to_string(e->id());
+
+			// Destroy button
+			ImGui::PushStyleColor(ImGuiCol_Button, btnClr);
+			if (ImGui::Button(btnDes_id.c_str()) && e != m_player)
+				e->destroy();
+			ImGui::PopStyleColor(1);
+
+			ImGui::SameLine();			
 			uiForEntity(e);
-			ImGui::Unindent(paddingLeft);
 		}
 	}
 
