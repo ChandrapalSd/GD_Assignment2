@@ -42,7 +42,7 @@ class ScenePlay : public Scene
 
 
 	public:
-		ScenePlay(const std::string configFilePath, Game* gameEngine);
+		ScenePlay(const Config& config, Game* gameEngine);
 
 		void init();
 		virtual void update(sf::Time deltaTime);
@@ -62,7 +62,7 @@ class ScenePlay : public Scene
 
 
 	private:
-		const Config config;
+		const Config& config;
 		SysStates gameState;
 		std::shared_ptr<Entity> m_player;
 

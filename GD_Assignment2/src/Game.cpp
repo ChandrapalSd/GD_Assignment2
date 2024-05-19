@@ -31,7 +31,7 @@ void Game::init()
 {
 	srand((unsigned int)time(0));
 
-	m_scenes["main"] = std::make_shared<ScenePlay>("res/config.txt", this);
+	m_scenes["main"] = std::make_shared<ScenePlay>(config, this);
 	currentScene = m_scenes["main"];
 }
 

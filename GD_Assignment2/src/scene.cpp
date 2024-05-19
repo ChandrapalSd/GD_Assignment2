@@ -13,8 +13,8 @@
 #include <imgui-SFML.h>
 
 
-ScenePlay::ScenePlay(const std::string configFilePath, Game* gameEngine)
-	: Scene(gameEngine), config(configFilePath)
+ScenePlay::ScenePlay(const Config& config, Game* gameEngine)
+	: Scene(gameEngine), config(config)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.WantCaptureMouse = true;
