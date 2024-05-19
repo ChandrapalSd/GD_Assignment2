@@ -1,19 +1,7 @@
 #pragma once
-#include "Entity.hpp"
 #include "Config.hpp"
+#include "scene.hpp"
 #include <SFML/Graphics.hpp>
-#include <EntityManager.hpp>
-
-struct GameState {
-	bool EnableSUserInput = true;
-	bool EnableSMovement = true;
-	bool EnableSCollision = true;
-	bool EnableSScore = true;
-	bool EnableSRender = true;
-	bool EnableSEnemySpawner = true;
-	bool EnableSPlayerWeapon = true;
-	bool EnableSLifetimeManagement = true;
-};
 
 class Game
 {
@@ -25,19 +13,9 @@ public:
 	void update();
 	void run();
 
-	void DrawImGuiUI(sf::Time deltaTime);
-
 	// Systems
 	void sUserInput();
-	void sMovement();
-	void sCollision();
-	void sScore();
 	void sRender();
-	void sEnemySpawner();
-	void sPlayerWeapon();
-	void sLifetimeManagement();
-
-	void shootEnemy(std::shared_ptr<Entity>& e);
 
 	[[nodiscard]] inline bool isRunning() const noexcept
 	{
@@ -46,15 +24,14 @@ public:
 
 private:
 	const Config config;
-	GameState gameState;
 	sf::RenderWindow m_window;
+	std::map< std::string, std::shared_ptr<Scene>> m_scenes;
+	std::shared_ptr<Scene> currentScene = 0;
 	sf::Clock m_deltaClock;
-	EntityManager m_entityManager;
-	std::shared_ptr<Entity> m_player;
 	bool m_running = true;
 	bool m_paused = false;
 
-	sf::Font m_font;
-	sf::Texture m_backTex;
-	sf::Sprite m_background;
+	CInput* cInput = new CInput();
+
+	friend class ScenePlay;
 };
