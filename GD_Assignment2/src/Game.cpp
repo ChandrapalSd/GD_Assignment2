@@ -33,6 +33,8 @@ void Game::init()
 
 	m_scenes["main"] = std::make_shared<ScenePlay>(config, this);
 	currentScene = m_scenes["main"];
+
+	m_assets.addFont("ScoreFont", config.fontFilePath);
 }
 
 void Game::update()

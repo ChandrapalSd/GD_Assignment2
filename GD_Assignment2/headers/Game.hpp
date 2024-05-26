@@ -1,6 +1,7 @@
 #pragma once
 #include "Config.hpp"
 #include "scene.hpp"
+#include "assets.hpp"
 #include <SFML/Graphics.hpp>
 
 class Game
@@ -24,6 +25,7 @@ public:
 
 private:
 	const Config config;
+	Assets m_assets;
 	sf::RenderWindow m_window;
 	std::map< std::string, std::shared_ptr<Scene>> m_scenes;
 	std::shared_ptr<Scene> currentScene = 0;
